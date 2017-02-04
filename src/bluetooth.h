@@ -29,18 +29,27 @@ class Bluetooth {
 		unsigned int	_baudrate;
 		char			_messageBuffer[BT_DEV_LONGEST_OPCODE + BT_DEV_MAX_DEV_NAME + 1];
 		char			_deviceName[BT_DEV_MAX_DEV_NAME + 1];
+		char			_devicePin[4 + 1];
 
+		void _clearSerial();
 		void _write();
+		void _writeReceive (char buffer[]);
+
 
 	public:
 		Bluetooth (unsigned int RX = 2, unsigned int TX = 3, unsigned int baudrate = BT_DEV_DEFAULT_BAUDRATE);
 		void Begin ();
+		void Reset ();
+		int Read (char buffer[], int bufferSize);
+		void Write (char buffer[]);
 		void setBaudrate (unsigned int baudrate);
-		void setDeviceName (char name[]);
+		void setDeviceName (const char name[]);
+		void setDevicePin (const char pin[]);
 		unsigned int getRXPin ();
 		unsigned int getTXPin ();
-		void getDeviceName (char buffer[]);
 		void getVersion (char buffer[]);
+		void getDeviceName (char buffer[]);
+		void getDevicePin (char buffer[]);
 };
 
 #endif

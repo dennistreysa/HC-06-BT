@@ -19,7 +19,6 @@ Bluetooth::Bluetooth (unsigned int RX, unsigned int TX, unsigned int baudrate) {
 
     // Init strings
     memset(this->_messageBuffer, 0, sizeof(this->_messageBuffer));
-    memset(this->_deviceName, 0, sizeof(this->_deviceName));
 }
 
 
@@ -34,9 +33,42 @@ void Bluetooth::Begin () {
 
     this->setBaudrate(this->_baudrate);
 
-    volatile char trash;
+    this->_clearSerial();
+}
 
-    // Empty all serial data to not interfere with other functionalities
+
+void Bluetooth::Reset () {
+    if (this->_initialized) {
+        strcpy(this->_messageBuffer, "AT+RESET");
+        this->_write();
+    }
+}
+
+
+int Bluetooth::Read (char buffer[], int bufferSize) {
+    
+    int bytesRead = 0;
+
+    if (bufferSize > 0) {
+        while (this->_btSerialDevice->available() && bytesRead < bufferSize) {
+            buffer[bytesRead] = this->_btSerialDevice->read();
+            bytesRead++;
+        }
+    }
+
+    return bytesRead;
+}
+
+
+void Bluetooth::Write (char buffer[]) {
+    Serial.println(buffer);
+    this->_btSerialDevice->write(buffer);
+}
+
+void Bluetooth::_clearSerial () {
+
+    volatile char trash; 
+
     while (this->_btSerialDevice->available()) {
         trash = this->_btSerialDevice->read();
     }
@@ -46,6 +78,22 @@ void Bluetooth::Begin () {
 void Bluetooth::_write () {
     this->_btSerialDevice->write(this->_messageBuffer);
     delay(BT_DEV_WRITE_WAIT);
+}
+
+
+void Bluetooth::_writeReceive (char buffer[]) {
+    int index = 0;
+
+    this->_clearSerial();
+
+    this->_write();
+
+    while (this->_btSerialDevice->available()) {
+        buffer[index] = this->_btSerialDevice->read();
+        index++;
+    }
+
+    buffer[index] = '\0';
 }
 
 
@@ -133,12 +181,31 @@ void Bluetooth::setBaudrate (unsigned int baudrate) {
 }
 
 
-void Bluetooth::setDeviceName (char name[]) {
-    if (strlen(name) <= BT_DEV_MAX_DEV_NAME) {
-        strcpy(this->_deviceName, name);
+void Bluetooth::setDeviceName (const char name[]) {
 
+    if (strlen(name) <= BT_DEV_MAX_DEV_NAME) {
         strcpy(this->_messageBuffer, "AT+NAME");
         strcat(this->_messageBuffer, name);
+
+        strcpy(this->_deviceName, name);
+        
+        this->_write();
+    }
+}
+
+
+void Bluetooth::setDevicePin (const char pin[]) {
+    if (strlen(pin) == 4) {
+        for (int c = 0; c < 4; c++) {
+            if (pin[c] < 0x30 || pin[c] > 0x90) {
+                return;
+            }
+        }
+
+        strcpy(this->_messageBuffer, "AT+PIN");
+        strcat(this->_messageBuffer, pin);
+
+        strcpy(this->_devicePin, pin);
         
         this->_write();
     }
@@ -161,16 +228,11 @@ void Bluetooth::getDeviceName (char buffer[]) {
 
 
 void Bluetooth::getVersion (char buffer[]) {
-
-    int index = 0;
-
     strcpy(this->_messageBuffer, "AT+VERSION");
-    this->_write();
+    this->_writeReceive(buffer);
+}
 
-    while (this->_btSerialDevice->available()) {
-        buffer[index] = this->_btSerialDevice->read();
-        index++;
-    }
 
-    buffer[index] = '\0';
+void Bluetooth::getDevicePin (char buffer[]) {
+    strcpy(buffer, this->_devicePin);
 }
