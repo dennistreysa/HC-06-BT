@@ -88,7 +88,6 @@ int Bluetooth::Read (char buffer[], int bufferSize) {
 
 
 void Bluetooth::Write (char buffer[]) {
-    Serial.println(buffer);
     this->_btSerialDevice->write(buffer);
 }
 
@@ -106,7 +105,7 @@ void Bluetooth::_clearSerial () {
  *  Internal function to write the buffer to the serial and wait some while
  */
 void Bluetooth::_write () {
-    this->_btSerialDevice->write(this->_messageBuffer);
+    this->Write(this->_messageBuffer);
     delay(BT_DEV_WRITE_WAIT);
 }
 
