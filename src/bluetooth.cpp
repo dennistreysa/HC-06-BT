@@ -9,6 +9,15 @@
 
 #include "bluetooth.h"
 
+
+/*
+ *  Constructor of Bluetooth class
+ *
+ *  @param
+ *      RX          : Number of the pin that shall be used as RX
+ *      TX          : Number of the pin that shall be used as TX
+ *      _baudrate   : The baudrate the controller should use
+ */
 Bluetooth::Bluetooth (unsigned int RX, unsigned int TX, unsigned int baudrate) {
 
     this->_RXPin = RX;
@@ -19,9 +28,14 @@ Bluetooth::Bluetooth (unsigned int RX, unsigned int TX, unsigned int baudrate) {
 
     // Init strings
     memset(this->_messageBuffer, 0, sizeof(this->_messageBuffer));
+    memset(this->_deviceName, 0, sizeof(this->_deviceName));
+    memset(this->_devicePin, 0, sizeof(this->_devicePin));
 }
 
 
+/*
+ *  Initializes the bluetooth controller
+ */
 void Bluetooth::Begin () {
     this->_btSerialDevice->begin(this->_baudrate);
     delay(BT_DEV_WRITE_WAIT);
@@ -37,6 +51,9 @@ void Bluetooth::Begin () {
 }
 
 
+/*
+ *  Resets the bluetooth controller
+ */
 void Bluetooth::Reset () {
     if (this->_initialized) {
         strcpy(this->_messageBuffer, "AT+RESET");
@@ -45,6 +62,16 @@ void Bluetooth::Reset () {
 }
 
 
+/*
+ *  Read serial data from the device (if present).
+ *
+ *  @param
+ *      buffer      : A buffer to store the read seria data
+ *      bufferSize  : The maximum number of bytes the buffer can hold
+ *
+ *  @return
+ *      The real number of bytes that were read from the serial
+ */
 int Bluetooth::Read (char buffer[], int bufferSize) {
     
     int bytesRead = 0;
@@ -75,12 +102,22 @@ void Bluetooth::_clearSerial () {
 }
 
 
+/*
+ *  Internal function to write the buffer to the serial and wait some while
+ */
 void Bluetooth::_write () {
     this->_btSerialDevice->write(this->_messageBuffer);
     delay(BT_DEV_WRITE_WAIT);
 }
 
 
+/*
+ *  Internal function to write the buffer to the serial and write back answer
+ *  to a buffer
+ *
+ *  @param
+ *      buffer : A buffer to write the answer to
+ */
 void Bluetooth::_writeReceive (char buffer[]) {
     int index = 0;
 
@@ -97,6 +134,12 @@ void Bluetooth::_writeReceive (char buffer[]) {
 }
 
 
+/*
+ *  Sets the device baudrate
+ *
+ *  @param
+ *      baudrate :  The new baudrate of the device
+ */
 void Bluetooth::setBaudrate (unsigned int baudrate) {
 
     /*
@@ -181,6 +224,12 @@ void Bluetooth::setBaudrate (unsigned int baudrate) {
 }
 
 
+/*
+ *  Sets the name of the device
+ *
+ *  @param
+ *      name :  The new name of the device
+ */
 void Bluetooth::setDeviceName (const char name[]) {
 
     if (strlen(name) <= BT_DEV_MAX_DEV_NAME) {
@@ -194,6 +243,12 @@ void Bluetooth::setDeviceName (const char name[]) {
 }
 
 
+/*
+ *  Sets the pin of the device
+ *
+ *  @param
+ *      pin: The new pin of the device
+ */
 void Bluetooth::setDevicePin (const char pin[]) {
     if (strlen(pin) == 4) {
         for (int c = 0; c < 4; c++) {
@@ -212,27 +267,60 @@ void Bluetooth::setDevicePin (const char pin[]) {
 }
 
 
+/*
+ *  Get the RX pin the device is using
+ *
+ *  @return
+ *      The number of the RX pin
+ */
 unsigned int Bluetooth::getRXPin () {
     return this->_RXPin;
 }
 
 
+/*
+ *  Get the TX pin the device is using
+ *
+ *  @return
+ *      The number of the TX pin
+ */
 unsigned int Bluetooth::getTXPin () {
     return this->_RXPin;
 }
 
 
+/*
+ *  Get the name of the device
+ *  Note: This does NOT query the module!
+ *
+ *  @return
+ *      The name of the device
+ */
 void Bluetooth::getDeviceName (char buffer[]) {
     strcpy(buffer, this->_deviceName);
 }
 
 
+/*
+ *  Get the version string of the device
+ *  Note: This DOES query the module!
+ *
+ *  @return
+ *      The version string of the device
+ */
 void Bluetooth::getVersion (char buffer[]) {
     strcpy(this->_messageBuffer, "AT+VERSION");
     this->_writeReceive(buffer);
 }
 
 
+/*
+ *  Get the pin of the device
+ *  Note: This does NOT query the module!
+ *
+ *  @return
+ *      The pin of the device
+ */
 void Bluetooth::getDevicePin (char buffer[]) {
     strcpy(buffer, this->_devicePin);
 }
