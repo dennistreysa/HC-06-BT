@@ -34,6 +34,13 @@ Bluetooth::Bluetooth (unsigned int RX, unsigned int TX, unsigned int baudrate) {
 
 
 /*
+ */
+Bluetooth::~Bluetooth () {
+    delete this->_btSerialDevice;
+}
+
+
+/*
  *  Initializes the bluetooth controller
  */
 void Bluetooth::Begin () {

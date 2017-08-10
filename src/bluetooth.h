@@ -38,6 +38,7 @@ class Bluetooth {
 
 	public:
 		Bluetooth (unsigned int RX = 2, unsigned int TX = 3, unsigned int baudrate = BT_DEV_DEFAULT_BAUDRATE);
+		~Bluetooth ();
 		void Begin ();
 		void Reset ();
 		int Read (char buffer[], int bufferSize);
